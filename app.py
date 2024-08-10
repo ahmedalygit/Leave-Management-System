@@ -91,9 +91,9 @@ def logout():
     for key in list(st.session_state.keys()):
         del st.session_state[key]
 
-    # Redirect to the login page
+    # Redirect to the login page by setting the query param
     st.experimental_set_query_params(page="login")
-    st.success("You have been logged out. Redirecting to the login page...")
+    st.experimental_rerun()  # Immediately reload the app to reflect logout
 
 
 # Employee Page
@@ -227,9 +227,8 @@ def main():
         elif st.session_state.role == "Manager":
             manager_dashboard()
     else:
-        # Display the login page automatically if redirected after logout
+        # If the user is not logged in, and the page is login, show the login page
         if page == "login":
-            st.experimental_set_query_params()  # Clear the query params after redirect
             show_login_page()
         else:
             menu = ["Home", "Sign Up", "Login"]
@@ -255,6 +254,9 @@ def show_login_page():
             user_id, role = user
             st.session_state.user_id = user_id  # Save user_id in session state
             st.session_state.role = role  # Save role in session state
+            # Clear the query params to prevent unintended redirects
+            st.experimental_set_query_params()
+            st.experimental_rerun()  # Immediately reload the app to reflect login
         else:
             st.error("Incorrect email or password")
 
@@ -284,6 +286,6 @@ def show_signup_page():
             st.error("Please select a manager.")
         else:
             signup_user(name, email, password, role, manager_id)
-            
+
 if __name__ == '__main__':
     main()
