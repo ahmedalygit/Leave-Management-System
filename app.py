@@ -71,12 +71,15 @@ def get_manager_name(manager_id):
 
 # Logout Function
 # Logout Function
+# Logout Function
 def logout():
+    # Clear the session state
     for key in list(st.session_state.keys()):
         del st.session_state[key]
 
-    # Provide a message to the user
-    st.success("You have been logged out. Please refresh the page or navigate to the login screen.")
+    # Redirect to the login page
+    st.experimental_set_query_params(page="login")
+    st.success("You have been logged out. Redirecting to the login page...")
 
 
 # Employee Page
@@ -198,6 +201,10 @@ def main():
     st.title("Streamlit Leave Management System")
     setup_database()
 
+    # Check the query parameters
+    query_params = st.experimental_get_query_params()
+    page = query_params.get("page", ["home"])[0]
+
     # Check if the user is already logged in
     if 'user_id' in st.session_state and 'role' in st.session_state:
         if st.session_state.role == "Employee":
@@ -205,54 +212,64 @@ def main():
         elif st.session_state.role == "Manager":
             manager_dashboard()
     else:
-        menu = ["Home", "Sign Up", "Login"]
-        choice = st.sidebar.selectbox("Menu", menu, key="main_menu")
+        # Display the login page automatically if redirected after logout
+        if page == "login":
+            st.experimental_set_query_params()  # Clear the query params after redirect
+            show_login_page()
+        else:
+            menu = ["Home", "Sign Up", "Login"]
+            choice = st.sidebar.selectbox("Menu", menu, key="main_menu")
 
-        if choice == "Home":
-            st.subheader("Welcome to the Leave Management System")
+            if choice == "Home":
+                st.subheader("Welcome to the Leave Management System")
 
-        elif choice == "Sign Up":
-            st.subheader("Create New Account")
-            name = st.text_input("Name", key="signup_name")
-            email = st.text_input("Email", key="signup_email")
-            password = st.text_input("Password", type="password", key="signup_password")
-            role = st.selectbox("Role", ["Employee", "Manager"], key="signup_role")
+            elif choice == "Sign Up":
+                show_signup_page()
 
-            if role == "Employee":
-                conn = create_connection()
-                c = conn.cursor()
-                c.execute("SELECT user_id, name FROM Users WHERE role='Manager'")
-                managers = c.fetchall()
-                if managers:
-                    manager_id = st.selectbox("Select Manager", options=[(m[0], m[1]) for m in managers],
-                                              format_func=lambda x: x[1], key="signup_manager")
-                else:
-                    st.warning("No managers available. Please sign up as a manager first.")
-                    manager_id = None
-            else:
-                manager_id = None
+            elif choice == "Login":
+                show_login_page()
 
-            if st.button("Sign Up", key="signup_button"):
-                if role == "Employee" and not manager_id:
-                    st.error("Please select a manager.")
-                else:
-                    signup_user(name, email, password, role, manager_id)
-                    st.success("You have successfully signed up!")
+def show_login_page():
+    st.subheader("Login Section")
+    email = st.text_input("Email", key="login_email")
+    password = st.text_input("Password", type="password", key="login_password")
 
-        elif choice == "Login":
-            st.subheader("Login Section")
-            email = st.text_input("Email", key="login_email")
-            password = st.text_input("Password", type="password", key="login_password")
+    if st.button("Login", key="login_button"):
+        user = login_user(email, password)
+        if user:
+            user_id, role = user
+            st.session_state.user_id = user_id  # Save user_id in session state
+            st.session_state.role = role  # Save role in session state
+        else:
+            st.error("Incorrect email or password")
 
-            if st.button("Login", key="login_button"):
-                user = login_user(email, password)
-                if user:
-                    user_id, role = user
-                    st.session_state.user_id = user_id  # Save user_id in session state
-                    st.session_state.role = role  # Save role in session state
-                    # No need to rerun, the page will naturally reload with the new state
-                else:
-                    st.error("Incorrect email or password")
+def show_signup_page():
+    st.subheader("Create New Account")
+    name = st.text_input("Name", key="signup_name")
+    email = st.text_input("Email", key="signup_email")
+    password = st.text_input("Password", type="password", key="signup_password")
+    role = st.selectbox("Role", ["Employee", "Manager"], key="signup_role")
+
+    if role == "Employee":
+        conn = create_connection()
+        c = conn.cursor()
+        c.execute("SELECT user_id, name FROM Users WHERE role='Manager'")
+        managers = c.fetchall()
+        if managers:
+            manager_id = st.selectbox("Select Manager", options=[(m[0], m[1]) for m in managers],
+                                      format_func=lambda x: x[1], key="signup_manager")
+        else:
+            st.warning("No managers available. Please sign up as a manager first.")
+            manager_id = None
+    else:
+        manager_id = None
+
+    if st.button("Sign Up", key="signup_button"):
+        if role == "Employee" and not manager_id:
+            st.error("Please select a manager.")
+        else:
+            signup_user(name, email, password, role, manager_id)
+            st.success("You have successfully signed up!")
 
 if __name__ == '__main__':
     main()
