@@ -42,12 +42,29 @@ def setup_database():
 
 # Authentication and User Role Management
 def signup_user(name, email, password, role, manager_id=None):
-    conn = create_connection()
-    c = conn.cursor()
-    c.execute("INSERT INTO Users (name, email, password, role, manager_id) VALUES (?, ?, ?, ?, ?)",
-              (name, email, password, role, manager_id))
-    conn.commit()
-    conn.close()
+    try:
+        conn = create_connection()
+        c = conn.cursor()
+
+        # Debugging: Check the values being inserted
+        st.write(f"Inserting user: {name}, {email}, {password}, {role}, {manager_id}")
+
+        # Ensure manager_id is set to None if not provided
+        if role == "Manager":
+            manager_id = None
+
+        c.execute("INSERT INTO Users (name, email, password, role, manager_id) VALUES (?, ?, ?, ?, ?)",
+                  (name, email, password, role, manager_id))
+        conn.commit()
+        conn.close()
+        st.success("User successfully signed up!")
+    except sqlite3.ProgrammingError as e:
+        st.error(f"An error occurred: {e}")
+        st.write(f"Values: {name}, {email}, {password}, {role}, {manager_id}")
+    except Exception as e:
+        st.error(f"An unexpected error occurred: {e}")
+        st.write(f"Values: {name}, {email}, {password}, {role}, {manager_id}")
+
 
 def login_user(email, password):
     conn = create_connection()
@@ -69,8 +86,6 @@ def get_manager_name(manager_id):
     else:
         return None
 
-# Logout Function
-# Logout Function
 # Logout Function
 def logout():
     # Clear the session state
@@ -196,8 +211,6 @@ def manager_dashboard():
     conn.close()
 
 # Main Application
-import streamlit as st
-
 import streamlit as st
 
 def main():
