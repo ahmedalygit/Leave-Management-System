@@ -239,7 +239,9 @@ def show_login_page():
             user_id, role = user
             st.session_state.user_id = user_id  # Save user_id in session state
             st.session_state.role = role  # Save role in session state
-            st.experimental_rerun()  # Immediately reload the app to reflect login
+            # Instead of rerunning, set a flag or handle redirection differently
+            st.success("Login successful! Redirecting...")
+            st.experimental_set_query_params(page="dashboard")
         else:
             st.error("Incorrect email or password")
 
@@ -270,6 +272,6 @@ def show_signup_page():
         else:
             signup_user(name, email, password, role, manager_id)
             st.success("You have successfully signed up!")
-            
+
 if __name__ == '__main__':
     main()
