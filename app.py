@@ -191,7 +191,8 @@ def main():
     st.title("Streamlit Leave Management System")
     setup_database()
 
-    if 'user_id' in st.session_state:
+    # Check if the user is already logged in
+    if 'user_id' in st.session_state and 'role' in st.session_state:
         if st.session_state.role == "Employee":
             employee_page()
         elif st.session_state.role == "Manager":
@@ -242,7 +243,7 @@ def main():
                     user_id, role = user
                     st.session_state.user_id = user_id  # Save user_id in session state
                     st.session_state.role = role  # Save role in session state
-                    st.experimental_rerun()  # Rerun to navigate to the correct page
+                    # No need to rerun, the page will naturally reload with the new state
                 else:
                     st.error("Incorrect email or password")
 
