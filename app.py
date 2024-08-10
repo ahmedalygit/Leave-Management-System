@@ -77,11 +77,11 @@ def logout():
 
 # Employee Page
 def employee_page():
-    employee_id = st.session_state.get('user_id')
-    if not employee_id:
-        st.error("Please log in to access this page.")
+    if 'user_id' not in st.session_state or 'role' not in st.session_state:
+        st.error("Session expired or not logged in. Please log in again.")
         st.stop()
 
+    employee_id = st.session_state['user_id']
     conn = create_connection()
     c = conn.cursor()
 
@@ -134,11 +134,11 @@ def employee_page():
 
 # Manager Dashboard
 def manager_dashboard():
-    manager_id = st.session_state.get('user_id')
-
-    if not manager_id:
-        st.error("Please log in to access this page.")
+    if 'user_id' not in st.session_state or 'role' not in st.session_state:
+        st.error("Session expired or not logged in. Please log in again.")
         st.stop()
+
+    manager_id = st.session_state['user_id']
 
     st.title("Manager Dashboard")
     conn = create_connection()
