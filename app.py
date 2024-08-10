@@ -91,9 +91,9 @@ def logout():
     for key in list(st.session_state.keys()):
         del st.session_state[key]
 
-    # Redirect to the login page by setting the query param
+    # Redirect to the login page by resetting the session state
     st.experimental_set_query_params(page="login")
-    st.experimental_rerun()  # Immediately reload the app to reflect logout
+    st.write("You have been logged out. Please use the menu to log in again.")
 
 
 # Employee Page
@@ -216,10 +216,6 @@ def main():
     st.title("Streamlit Leave Management System")
     setup_database()
 
-    # Check the query parameters
-    query_params = st.experimental_get_query_params()
-    page = query_params.get("page", ["home"])[0]
-
     # Check if the user is already logged in
     if 'user_id' in st.session_state and 'role' in st.session_state:
         if st.session_state.role == "Employee":
@@ -227,21 +223,17 @@ def main():
         elif st.session_state.role == "Manager":
             manager_dashboard()
     else:
-        # If the user is not logged in, and the page is login, show the login page
-        if page == "login":
+        menu = ["Home", "Sign Up", "Login"]
+        choice = st.sidebar.selectbox("Menu", menu, key="main_menu")
+
+        if choice == "Home":
+            st.subheader("Welcome to the Leave Management System")
+
+        elif choice == "Sign Up":
+            show_signup_page()
+
+        elif choice == "Login":
             show_login_page()
-        else:
-            menu = ["Home", "Sign Up", "Login"]
-            choice = st.sidebar.selectbox("Menu", menu, key="main_menu")
-
-            if choice == "Home":
-                st.subheader("Welcome to the Leave Management System")
-
-            elif choice == "Sign Up":
-                show_signup_page()
-
-            elif choice == "Login":
-                show_login_page()
 
 def show_login_page():
     st.subheader("Login Section")
@@ -254,9 +246,11 @@ def show_login_page():
             user_id, role = user
             st.session_state.user_id = user_id  # Save user_id in session state
             st.session_state.role = role  # Save role in session state
-            # Clear the query params to prevent unintended redirects
-            st.experimental_set_query_params()
-            st.experimental_rerun()  # Immediately reload the app to reflect login
+            # Redirect to the appropriate page based on the role
+            if role == "Employee":
+                employee_page()
+            elif role == "Manager":
+                manager_dashboard()
         else:
             st.error("Incorrect email or password")
 
