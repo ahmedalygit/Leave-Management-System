@@ -70,11 +70,16 @@ def get_manager_name(manager_id):
         return None
 
 # Logout Function
+# Logout Function
 def logout():
     for key in list(st.session_state.keys()):
         del st.session_state[key]
-    st.experimental_rerun()  # This will reload the page, effectively logging out the user
 
+    # Provide a message to the user
+    st.success("You have been logged out. Please refresh the page or navigate to the login screen.")
+
+
+# Employee Page
 # Employee Page
 def employee_page():
     if 'user_id' not in st.session_state or 'role' not in st.session_state:
@@ -129,7 +134,9 @@ def employee_page():
     else:
         st.info("No leave requests found.")
 
-    st.button("Logout", on_click=logout)
+    if st.button("Logout"):
+        logout()
+
     conn.close()
 
 # Manager Dashboard
@@ -172,17 +179,17 @@ def manager_dashboard():
                     c.execute("UPDATE LeaveRequests SET status='Approved' WHERE leave_id=?", (leave_id,))
                     conn.commit()
                     st.success(f"Leave request {leave_id} approved")
-                    st.experimental_rerun()
             with col2:
                 if st.button("Reject", key=f"reject_{leave_id}_manager_{manager_id}"):
                     c.execute("UPDATE LeaveRequests SET status='Rejected' WHERE leave_id=?", (leave_id,))
                     conn.commit()
                     st.error(f"Leave request {leave_id} rejected")
-                    st.experimental_rerun()
+
     else:
         st.info("No leave requests to review.")
 
-    st.button("Logout", on_click=logout)
+    if st.button("Logout"):
+        logout()
 
     conn.close()
 
