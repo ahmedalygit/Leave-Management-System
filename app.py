@@ -83,7 +83,6 @@ def logout():
 
 
 # Employee Page
-# Employee Page
 def employee_page():
     if 'user_id' not in st.session_state or 'role' not in st.session_state:
         st.error("Session expired or not logged in. Please log in again.")
@@ -197,6 +196,10 @@ def manager_dashboard():
     conn.close()
 
 # Main Application
+import streamlit as st
+
+import streamlit as st
+
 def main():
     st.title("Streamlit Leave Management System")
     setup_database()
@@ -212,8 +215,9 @@ def main():
         elif st.session_state.role == "Manager":
             manager_dashboard()
     else:
-        # Redirect to the login page automatically if page is 'login'
+        # Display the login page automatically if redirected after logout
         if page == "login":
+            st.experimental_set_query_params()  # Clear the query params after redirect
             show_login_page()
         else:
             menu = ["Home", "Sign Up", "Login"]
@@ -239,9 +243,6 @@ def show_login_page():
             user_id, role = user
             st.session_state.user_id = user_id  # Save user_id in session state
             st.session_state.role = role  # Save role in session state
-            # Instead of rerunning, set a flag or handle redirection differently
-            st.success("Login successful! Redirecting...")
-            st.experimental_set_query_params(page="dashboard")
         else:
             st.error("Incorrect email or password")
 
