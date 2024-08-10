@@ -212,9 +212,8 @@ def main():
         elif st.session_state.role == "Manager":
             manager_dashboard()
     else:
-        # Display the login page automatically if redirected after logout
+        # Redirect to the login page automatically if page is 'login'
         if page == "login":
-            st.experimental_set_query_params()  # Clear the query params after redirect
             show_login_page()
         else:
             menu = ["Home", "Sign Up", "Login"]
@@ -240,6 +239,7 @@ def show_login_page():
             user_id, role = user
             st.session_state.user_id = user_id  # Save user_id in session state
             st.session_state.role = role  # Save role in session state
+            st.experimental_rerun()  # Immediately reload the app to reflect login
         else:
             st.error("Incorrect email or password")
 
@@ -270,6 +270,6 @@ def show_signup_page():
         else:
             signup_user(name, email, password, role, manager_id)
             st.success("You have successfully signed up!")
-
+            
 if __name__ == '__main__':
     main()
