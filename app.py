@@ -47,24 +47,23 @@ def signup_user(name, email, password, role, manager_id=None):
         c = conn.cursor()
 
         # Debugging: Check the values being inserted
-        st.write(f"Inserting user: {name}, {email}, {password}, {role}, {manager_id}")
+        st.write(f"Inserting user: {name}, {email}, {password}, {role}, manager_id: {manager_id}")
 
-        # Ensure manager_id is set to None if not provided
+        # Ensure manager_id is None if role is Manager
         if role == "Manager":
             manager_id = None
 
+        # Execute the insertion
         c.execute("INSERT INTO Users (name, email, password, role, manager_id) VALUES (?, ?, ?, ?, ?)",
                   (name, email, password, role, manager_id))
         conn.commit()
         conn.close()
+
         st.success("User successfully signed up!")
     except sqlite3.ProgrammingError as e:
         st.error(f"An error occurred: {e}")
-        st.write(f"Values: {name}, {email}, {password}, {role}, {manager_id}")
     except Exception as e:
         st.error(f"An unexpected error occurred: {e}")
-        st.write(f"Values: {name}, {email}, {password}, {role}, {manager_id}")
-
 
 def login_user(email, password):
     conn = create_connection()
@@ -266,26 +265,25 @@ def show_signup_page():
     password = st.text_input("Password", type="password", key="signup_password")
     role = st.selectbox("Role", ["Employee", "Manager"], key="signup_role")
 
+    manager_id = None
     if role == "Employee":
         conn = create_connection()
         c = conn.cursor()
         c.execute("SELECT user_id, name FROM Users WHERE role='Manager'")
         managers = c.fetchall()
+        conn.close()
+
         if managers:
-            manager_id = st.selectbox("Select Manager", options=[(m[0], m[1]) for m in managers],
-                                      format_func=lambda x: x[1], key="signup_manager")
+            selected_manager = st.selectbox("Select Manager", options=managers, format_func=lambda x: x[1], key="signup_manager")
+            manager_id = selected_manager[0]  # Extract the manager's user_id (which is an integer)
         else:
             st.warning("No managers available. Please sign up as a manager first.")
-            manager_id = None
-    else:
-        manager_id = None
 
     if st.button("Sign Up", key="signup_button"):
-        if role == "Employee" and not manager_id:
+        if role == "Employee" and manager_id is None:
             st.error("Please select a manager.")
         else:
             signup_user(name, email, password, role, manager_id)
-            st.success("You have successfully signed up!")
-
+            
 if __name__ == '__main__':
     main()
